@@ -103,8 +103,15 @@ function mailchimp_ecommerce_queue_process($item) {
 
   switch ($item->op) {
     case 'addCart':
-    case 'updateCart':
       $mc_ecommerce->{$item->op}($item->store_id, $item->cart_id, $customer, $item->cart);
+      break;
+
+    case 'updateCart':
+      $parameters = [
+        'customer' => (object) customer,
+      ];
+      $parameters += $item->cart;
+      $mc_ecommerce->{$item->op}($item->store_id, $item->cart_id, $parameters);
       break;
 
     case 'deleteCart':
