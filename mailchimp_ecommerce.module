@@ -364,7 +364,6 @@ function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
 
     if (mailchimp_ecommerce_use_queue()) {
       mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_cart_process', [
-        'op' => 'addCart',
         'cart_id' => $cart_id,
         'store_id' => $store_id,
         'customer' => $customer,
@@ -431,7 +430,6 @@ function mailchimp_ecommerce_update_cart($cart_id, array $customer, array $cart)
 
     if (mailchimp_ecommerce_use_queue()) {
       mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_update_cart_process', [
-        'op' => 'updateCart',
         'cart_id' => $cart_id,
         'store_id' => $store_id,
         'customer' => $customer,
@@ -489,7 +487,6 @@ function mailchimp_ecommerce_delete_cart($cart_id) {
 
     if (mailchimp_ecommerce_use_queue()) {
       mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_delete_cart_process', [
-        'op' => 'deleteCart',
         'cart_id' => $cart_id,
         'store_id' => $store_id,
       ]);
@@ -544,7 +541,6 @@ function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
 
     if (mailchimp_ecommerce_use_queue()) {
       mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_cart_line_process', [
-        'op' => 'addCartLine',
         'cart_id' => $cart_id,
         'store_id' => $store_id,
         'line_id' => $line_id,
@@ -598,7 +594,6 @@ function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
 
     if (mailchimp_ecommerce_use_queue()) {
       mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_update_cart_line_process', [
-        'op' => 'updateCartLine',
         'cart_id' => $cart_id,
         'store_id' => $store_id,
         'line_id' => $line_id,
@@ -646,7 +641,6 @@ function mailchimp_ecommerce_delete_cart_line($cart_id, $line_id) {
 
     if (mailchimp_ecommerce_use_queue()) {
       mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_delete_cart_line_process', [
-        'op' => 'deleteCartLine',
         'cart_id' => $cart_id,
         'store_id' => $store_id,
         'line_id' => $line_id,
@@ -744,7 +738,6 @@ function mailchimp_ecommerce_add_order($order_id, array $customer, array $order)
 
     if (mailchimp_ecommerce_use_queue()) {
       mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_order_process', [
-        'op' => 'addOrder',
         'store_id' => $store_id,
         'order_id' => $order_id,
         'customer' => $customer,
@@ -809,7 +802,6 @@ function mailchimp_ecommerce_update_order($order_id, array $order) {
 
     if (mailchimp_ecommerce_use_queue()) {
       mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_update_order_process', [
-        'op' => 'updateOrder',
         'order_id' => $order_id,
         'store_id' => $store_id,
         'order' => $order,
@@ -855,7 +847,6 @@ function mailchimp_ecommerce_delete_order($order_id) {
 
     if (mailchimp_ecommerce_use_queue()) {
       mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_delete_order_process', [
-        'op' => 'deleteOrder',
         'order_id' => $order_id,
         'store_id' => $store_id,
       ]);
