@@ -543,7 +543,7 @@ function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
     }
 
     if (mailchimp_ecommerce_use_queue()) {
-      mailchimp_ecommerce_create_queue_item([
+      mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_cart_line_process', [
         'op' => 'addCartLine',
         'cart_id' => $cart_id,
         'store_id' => $store_id,
@@ -552,15 +552,27 @@ function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
       ]);
     }
     else {
-      /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
-      $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
-      $mc_ecommerce->addCartLine($store_id, $cart_id, $line_id, $product);
+      mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product, $store_id);
     }
   }
   catch (Exception $e) {
     mailchimp_ecommerce_log_error_message('Unable to add a cart line: ' . $e->getMessage());
     mailchimp_ecommerce_show_error($e->getMessage());
   }
+}
+
+/**
+ * Process a cart line addition.
+ *
+ * @param $cart_id
+ * @param $line_id
+ * @param $product
+ * @param $store_id
+ */
+function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product, $store_id): void {
+  /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
+  $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
+  $mc_ecommerce->addCartLine($store_id, $cart_id, $line_id, $product);
 }
 
 /**
