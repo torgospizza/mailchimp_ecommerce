@@ -57,17 +57,6 @@ function mailchimp_ecommerce_use_queue() {
 }
 
 /**
- * Implements hook_queue_info().
- */
-function mailchimp_ecommerce_cron_queue_info() {
-  $queues['mailchimp_ecommerce_ops'] = array(
-    'worker callback' => 'mailchimp_ecommerce_queue_process',
-    'time' => 60,
-  );
-  return $queues;
-}
-
-/**
  * Add a MailChimp eCommerce task to the queue.
  *
  * @string $function
@@ -89,77 +78,25 @@ function mailchimp_ecommerce_addto_queue($function, $args) {
 }
 
 /**
- * Worker function to process a MailChimp eCommerce queue item.
+ * Implements hook_cron().
  *
- * @param DrupalQueueItem $item
- *  A Drupal Queue object.
+ * Process queued ecommerce operations with Cron.
  */
-function mailchimp_ecommerce_queue_process($item) {
-  $list_id = mailchimp_ecommerce_get_list_id();
-
-  /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
-  $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
-
-  if (isset($item->customer)) {
-    $customer = $item->customer;
-
-    $store_id = mailchimp_ecommerce_get_store_id();
-    if (empty($store_id)) {
-      return;
+function mailchimp_ecommerce_cron() {
+  $queue = DrupalQueue::get(MAILCHIMP_ECOMMERCE_QUEUE_CRON);
+  $queue->createQueue();
+  $queue_count = $queue->numberOfItems();
+  if ($queue_count > 0) {
+    $batch_limit = variable_get('mailchimp_batch_limit', 100);
+    $batch_size = ($queue_count < $batch_limit) ? $queue_count : $batch_limit;
+    $count = 0;
+    while ($count < $batch_size) {
+      if ($item = $queue->claimItem()) {
+        call_user_func_array($item->data['function'], $item->data['args']);
+        $queue->deleteItem($item);
+      }
+      $count++;
     }
-
-    if (!mailchimp_ecommerce_validate_customer($customer) && !$customer['email_address']) {
-      return;
-    }
-
-    // Pull member information to get member status.
-    $memberinfo = mailchimp_get_memberinfo($list_id, $customer['email_address'], TRUE);
-    $customer['opt_in_status'] = (isset($memberinfo->status) && ($memberinfo->status == 'subscribed')) ? TRUE : FALSE;
-  }
-
-  switch ($item->op) {
-    case 'addCart':
-    case 'updateCart':
-      $mc_ecommerce->{$item->op}($item->store_id, $item->cart_id, $customer, $item->cart);
-      break;
-
-    case 'deleteCart':
-      $mc_ecommerce->{$item->op}($item->store_id, $item->cart_id);
-      break;
-
-    case 'addCartLine':
-    case 'updateCartLine':
-      $mc_ecommerce->{$item->op}($item->store_id, $item->cart_id, $item->line_id, $item->product);
-      break;
-
-    case 'deleteCartLine':
-      $mc_ecommerce->{$item->op}($item->store_id, $item->cart_id, $item->line_id);
-      break;
-
-    case 'addOrder':
-      // Pull member information to get member status.
-      $memberinfo = mailchimp_get_memberinfo($list_id, $customer['email_address'], TRUE);
-      $customer['opt_in_status'] = (isset($memberinfo->status) && ($memberinfo->status == 'subscribed')) ? TRUE : FALSE;
-
-      // Increment customer totals
-      $remote_customer = mailchimp_ecommerce_get_customer($customer['id']);
-      $customer['orders_count'] = $remote_customer->orders_count + 1;
-      $customer['total_spent'] = $remote_customer->total_spent + $item->order['order_total'];
-      $mc_ecommerce->{$item->op}($item->store_id, $item->order_id, $customer, $item->order);
-      break;
-
-    case 'updateOrder':
-      $mc_ecommerce->{$item->op}($item->store_id, $item->order_id, $item->order);
-      break;
-
-    case 'deleteOrder':
-      $mc_ecommerce->{$item->op}($item->store_id, $item->order_id, $item->order);
-
-      // Decrement customer totals.
-      $remote_customer = mailchimp_ecommerce_get_customer($customer['id']);
-      $customer['orders_count'] = $remote_customer->orders_count - 1;
-      $customer['total_spent'] = $remote_customer->total_spent - $item->order['order_total'];
-      break;
   }
 }
 
