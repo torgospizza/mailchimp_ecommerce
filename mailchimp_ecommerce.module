@@ -569,7 +569,7 @@ function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
  * @param $product
  * @param $store_id
  */
-function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product, $store_id): void {
+function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product, $store_id) {
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
   $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
   $mc_ecommerce->addCartLine($store_id, $cart_id, $line_id, $product);
@@ -769,7 +769,7 @@ function mailchimp_ecommerce_add_order($order_id, array $customer, array $order)
  * @param array $order
  * @param $store_id
  */
-function mailchimp_ecommerce_add_order_process($order_id, array $customer, array $order, $store_id): void {
+function mailchimp_ecommerce_add_order_process($order_id, array $customer, array $order, $store_id) {
   $list_id = mailchimp_ecommerce_get_list_id();
 
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
