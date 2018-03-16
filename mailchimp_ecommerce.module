@@ -389,7 +389,7 @@ function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
  * @param array $cart
  * @param $store_id
  */
-function mailchimp_ecommerce_add_cart_process($cart_id, array $customer, array $cart, $store_id): void {
+function mailchimp_ecommerce_add_cart_process($cart_id, array $customer, array $cart, $store_id) {
   $list_id = mailchimp_ecommerce_get_list_id();
 
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
