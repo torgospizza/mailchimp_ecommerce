@@ -834,6 +834,7 @@ function mailchimp_ecommerce_update_order($order_id, array $order) {
   else {
     $result = mailchimp_ecommerce_update_order_process($order_id, $order, $store_id);
   }
+  return $result;
 }
 
 /**
