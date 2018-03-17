@@ -817,7 +817,7 @@ function mailchimp_ecommerce_add_order($order_id, array $customer, array $order)
     }
 
     if (mailchimp_ecommerce_use_queue()) {
-      mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_add_order_process', [
+      $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_add_order_process', [
         'op' => 'addOrder',
         'store_id' => $store_id,
         'order_id' => $order_id,
@@ -826,8 +826,9 @@ function mailchimp_ecommerce_add_order($order_id, array $customer, array $order)
       ]);
     }
     else {
-      mailchimp_ecommerce_add_order_process($order_id, $customer, $order, $store_id);
+      $result = mailchimp_ecommerce_add_order_process($order_id, $customer, $order, $store_id);
     }
+    return $result;
   }
   catch (Exception $e) {
     mailchimp_ecommerce_log_error_message('Unable to add an order: ' . $e->getMessage());
@@ -857,6 +858,7 @@ function mailchimp_ecommerce_add_order_process($order_id, array $customer, array
   $customer['total_spent'] = $remote_customer->total_spent + $order['order_total'];
 
   $mc_ecommerce->addOrder($store_id, $order_id, $customer, $order);
+  return TRUE;
 }
 
 /**
