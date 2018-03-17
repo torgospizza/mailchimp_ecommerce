@@ -603,7 +603,7 @@ function mailchimp_ecommerce_delete_cart_process($cart_id, $store_id) {
 function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return FALSE;
+    return;
   }
 
   if (mailchimp_ecommerce_use_queue()) {
@@ -659,7 +659,7 @@ function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
   try {
     $store_id = mailchimp_ecommerce_get_store_id();
     if (empty($store_id)) {
-      throw new Exception('Cannot update a cart line without a store ID.');
+      return;
     }
 
     if (mailchimp_ecommerce_use_queue()) {
@@ -713,7 +713,7 @@ function mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $produ
 function mailchimp_ecommerce_delete_cart_line($cart_id, $line_id) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return FALSE;
+    return;
   }
 
   if (mailchimp_ecommerce_use_queue()) {
@@ -762,7 +762,7 @@ function mailchimp_ecommerce_get_order($order_id) {
   try {
     $store_id = mailchimp_ecommerce_get_store_id();
     if (empty($store_id)) {
-      throw new Exception('Cannot get an order without a store ID.');
+      return FALSE;
     }
 
     /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
