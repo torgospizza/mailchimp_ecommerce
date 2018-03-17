@@ -915,33 +915,22 @@ function mailchimp_ecommerce_update_order_process($order_id, array $order, $stor
  *   The Order ID.
  */
 function mailchimp_ecommerce_delete_order($order_id) {
-  try {
-    $store_id = mailchimp_ecommerce_get_store_id();
-    if (empty($store_id)) {
-      throw new Exception('Cannot delete an order without a store ID.');
-    }
+  $store_id = mailchimp_ecommerce_get_store_id();
+  if (empty($store_id)) {
+    return;
+  }
 
-    if (mailchimp_ecommerce_use_queue()) {
-      $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_delete_order_process', [
-        'op' => 'deleteOrder',
-        'order_id' => $order_id,
-        'store_id' => $store_id,
-      ]);
-    }
-    else {
-      $result = mailchimp_ecommerce_delete_order_process($order_id, $store_id);
-    }
-    return $result;
+  if (mailchimp_ecommerce_use_queue()) {
+    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_delete_order_process', [
+      'op' => 'deleteOrder',
+      'order_id' => $order_id,
+      'store_id' => $store_id,
+    ]);
   }
-  catch (Exception $e) {
-    if ($e->getCode() == 404) {
-      // Order doesn't exist; no need to log an error.
-    }
-    else {
-      mailchimp_ecommerce_log_error_message('Unable to delete an order: ' . $e->getMessage());
-      mailchimp_ecommerce_show_error($e->getMessage());
-    }
+  else {
+    $result = mailchimp_ecommerce_delete_order_process($order_id, $store_id);
   }
+  return $result;
 }
 
 /**
