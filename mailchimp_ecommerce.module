@@ -507,21 +507,20 @@ function mailchimp_ecommerce_delete_cart($cart_id) {
 }
 
 /**
+ * Process a cart deletion operation
+ *
  * @param $cart_id
  * @param $store_id
  */
 function mailchimp_ecommerce_delete_cart_process($cart_id, $store_id) {
+  /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
   try {
-    /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
     $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
     $mc_ecommerce->deleteCart($store_id, $cart_id);
     return TRUE;
   }
   catch (Exception $e) {
-    if ($e->getCode() == 404) {
-      // Cart doesn't exist; no need to log an error.
-    }
-    else {
+    if ($e->getCode() != 404) {
       mailchimp_ecommerce_log_error_message('Unable to delete a cart: ' . $e->getMessage());
       mailchimp_ecommerce_show_error($e->getMessage());
     }
@@ -564,21 +563,25 @@ function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
 }
 
 /**
+ * Process a cart line addition.
+ *
  * @param $cart_id
  * @param $line_id
  * @param $product
  * @param $store_id
  */
 function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product, $store_id) {
+  /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
   try {
-    /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
     $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
     $mc_ecommerce->addCartLine($store_id, $cart_id, $line_id, $product);
     return TRUE;
   }
   catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message('Unable to add a cart line: ' . $e->getMessage());
-    mailchimp_ecommerce_show_error($e->getMessage());
+    if ($e->getCode() != 404) {
+      mailchimp_ecommerce_log_error_message('Unable to add a cart line: ' . $e->getMessage());
+      mailchimp_ecommerce_show_error($e->getMessage());
+    }
     return FALSE;
   }
 }
@@ -600,7 +603,7 @@ function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product,
 function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return;
+    return FALSE;
   }
 
   if (mailchimp_ecommerce_use_queue()) {
@@ -618,6 +621,8 @@ function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
 }
 
 /**
+ * Process a cart line update.
+ *
  * @param $cart_id
  * @param $line_id
  * @param $product
@@ -631,8 +636,10 @@ function mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $produ
     return TRUE;
   }
   catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message('Unable to update a cart line: ' . $e->getMessage());
-    mailchimp_ecommerce_show_error($e->getMessage());
+    if ($e->getMessage() != 404) {
+      mailchimp_ecommerce_log_error_message('Unable to update a cart line: ' . $e->getMessage());
+      mailchimp_ecommerce_show_error($e->getMessage());
+    }
     return FALSE;
   }
 }
@@ -665,20 +672,25 @@ function mailchimp_ecommerce_delete_cart_line($cart_id, $line_id) {
 }
 
 /**
+ * Process a cart line deletion.
+ *
  * @param $cart_id
  * @param $line_id
  * @param $store_id
  */
 function mailchimp_ecommerce_delete_cart_line_process($cart_id, $line_id, $store_id) {
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
+  $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
+
   try {
-    $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
     $mc_ecommerce->deleteCartLine($store_id, $cart_id, $line_id);
     return TRUE;
   }
   catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message('Unable to delete a cart line: ' . $e->getMessage());
-    mailchimp_ecommerce_show_error($e->getMessage());
+    if ($e->getCode() != 404) {
+      mailchimp_ecommerce_log_error_message('Unable to delete a cart line: ' . $e->getMessage());
+      mailchimp_ecommerce_show_error($e->getMessage());
+    }
     return FALSE;
   }
 }
@@ -705,16 +717,10 @@ function mailchimp_ecommerce_get_order($order_id) {
     return $order;
   }
   catch (Exception $e) {
-    if ($e->getCode() == 404) {
-      // Order doesn't exist in the store; no need to log an error.
-    }
-    else {
-      mailchimp_ecommerce_log_error_message('Unable to get order: ' . $e->getMessage());
-      mailchimp_ecommerce_show_error($e->getMessage());
-    }
+    mailchimp_ecommerce_log_error_message('Unable to get order: ' . $e->getMessage());
+    mailchimp_ecommerce_show_error($e->getMessage());
+    return FALSE;
   }
-
-  return NULL;
 }
 
 /**
@@ -764,6 +770,8 @@ function mailchimp_ecommerce_add_order($order_id, array $customer, array $order)
 }
 
 /**
+ * Process adding an order at MailChimp.
+ *
  * @param $order_id
  * @param array $customer
  * @param array $order
@@ -773,14 +781,22 @@ function mailchimp_ecommerce_add_order_process($order_id, array $customer, array
   $list_id = mailchimp_ecommerce_get_list_id();
 
   try {
+    if (empty($store_id)) {
+      return;
+    }
     /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
     $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
+    if (!mailchimp_ecommerce_validate_customer($customer)) {
+      // A user not existing in the store's MailChimp list is not an error, so
+      // don't throw an exception.
+      return FALSE;
+    }
 
     // Pull member information to get member status.
     $memberinfo = mailchimp_get_memberinfo($list_id, $customer['email_address'], TRUE);
     $customer['opt_in_status'] = (isset($memberinfo->status) && ($memberinfo->status == 'subscribed')) ? TRUE : FALSE;
 
-    // Increment customer totals
+    // Increment customer totals.
     $remote_customer = mailchimp_ecommerce_get_customer($customer['id']);
     $customer['orders_count'] = $remote_customer->orders_count + 1;
     $customer['total_spent'] = $remote_customer->total_spent + $order['order_total'];
@@ -828,20 +844,25 @@ function mailchimp_ecommerce_update_order($order_id, array $order) {
 }
 
 /**
+ * Process updating an order at MailChimp.
+ *
  * @param $order_id
  * @param array $order
  * @param $store_id
+ * @throws \Mailchimp\MailchimpAPIException
  */
 function mailchimp_ecommerce_update_order_process($order_id, array $order, $store_id) {
+  /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
   try {
-    /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
     $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
     $mc_ecommerce->updateOrder($store_id, $order_id, $order);
     return TRUE;
   }
   catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message('Unable to update an order: ' . $e->getMessage());
-    mailchimp_ecommerce_show_error($e->getMessage());
+    if ($e->getCode() != 404) {
+      mailchimp_ecommerce_show_error($e->getMessage());
+      mailchimp_ecommerce_log_error_message('Unable to update an order: ' . $e->getMessage());
+    }
     return FALSE;
   }
 }
