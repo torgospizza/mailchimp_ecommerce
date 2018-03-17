@@ -1,4 +1,5 @@
 <?php
+define('MAILCHIMP_ECOMMERCE_QUEUE_CRON', 'mailchimp_ecommerce');
 
 /**
  * @file
@@ -69,19 +70,22 @@ function mailchimp_ecommerce_cron_queue_info() {
 /**
  * Callback to create a queue item.
  *
- * @param array $item
- *   Properties to send to the Queue API.
- *   - 'op' (string) The operation to be performed by the MailChimp API. This
- *   maps to the actual MailChimp API methods.
- *   - 'cart_id' (string) The ID of the current cart.
- *   - 'store_id' (string) The Store ID.
- *   - 'customer' (array) A fully loaded MailChimp $customer.
- *   - 'cart'  For cart operations, this is the $order from Drupal.
- *   - 'order' For order operations, this is the $order from Drupal.
+ * @string $function
+ *   The name of the function the queue runner should call.
+ * @array $args
+ *   The list of args to pass to the function.
+ *
+ * @return bool
+ *   Success or failure.
  */
-function mailchimp_ecommerce_create_queue_item($item) {
-  $queue = DrupalQueue::get('mailchimp_ecommerce_ops');
-  $queue->createItem($item);
+function mailchimp_ecommerce_create_queue_item($function, $args) {
+  $queue = DrupalQueue::get(MAILCHIMP_ECOMMERCE_QUEUE_CRON);
+  $queue->createQueue();
+  mailchimp_update_local_cache($function, $args);
+  return $queue->createItem(array(
+    'function' => $function,
+    'args' => $args,
+  ));
 }
 
 /**
