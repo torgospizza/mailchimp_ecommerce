@@ -674,7 +674,6 @@ function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
     $result = mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $product, $store_id);
   }
   return $result;
-
 }
 
 /**
@@ -740,7 +739,7 @@ function mailchimp_ecommerce_delete_cart_line_process($cart_id, $line_id, $store
   catch (Exception $e) {
     mailchimp_ecommerce_log_error_message('Unable to delete a cart line: ' . $e->getMessage());
     mailchimp_ecommerce_show_error($e->getMessage());
-    return TRUE;
+    return FALSE;
   }
 }
 
