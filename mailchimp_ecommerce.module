@@ -404,43 +404,37 @@ function mailchimp_ecommerce_delete_customer($customer_id) {
  * @see http://developer.mailchimp.com/documentation/mailchimp/reference/ecommerce/stores/carts/#create-post_ecommerce_stores_store_id_carts
  */
 function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
-  try {
-    $store_id = mailchimp_ecommerce_get_store_id();
-    if (empty($store_id)) {
-      throw new Exception('Cannot add a cart without a store ID.');
-    }
-
-    // Do nothing with no email.
-    if (!$customer['email_address']) {
-      return;
-    }
-    if (!mailchimp_ecommerce_validate_customer($customer)) {
-      // A user not existing in the store's MailChimp list is not an error, so
-      // don't throw an exception.
-      return;
-    }
-    $campaign_id = mailchimp_ecommerce_get_campaign_id();
-    if (!empty($campaign_id)) {
-      $cart['campaign_id'] = $campaign_id;
-      $cart['landing_site'] = isset($_SESSION['mc_landing_site']) ? $_SESSION['mc_landing_site'] : '';
-    }
-
-    if (mailchimp_ecommerce_use_queue()) {
-      $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_add_cart_process', [
-        'op' => 'addCart',
-        'cart_id' => $cart_id,
-        'store_id' => $store_id,
-        'customer' => $customer,
-        'cart' => $cart,
-      ]);
-    }
-    else {
-      $result = mailchimp_ecommerce_add_cart_process($cart_id, $customer, $cart, $store_id);
-    }
+  $store_id = mailchimp_ecommerce_get_store_id();
+  if (empty($store_id)) {
+    return;
   }
-  catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message('Unable to add a cart: ' . $e->getMessage());
-    mailchimp_ecommerce_show_error($e->getMessage());
+
+  // Do nothing with no email.
+  if (!$customer['email_address']) {
+    return;
+  }
+  if (!mailchimp_ecommerce_validate_customer($customer)) {
+    // A user not existing in the store's MailChimp list is not an error, so
+    // don't throw an exception.
+    return;
+  }
+  $campaign_id = mailchimp_ecommerce_get_campaign_id();
+  if (!empty($campaign_id)) {
+    $cart['campaign_id'] = $campaign_id;
+    $cart['landing_site'] = isset($_SESSION['mc_landing_site']) ? $_SESSION['mc_landing_site'] : '';
+  }
+
+  if (mailchimp_ecommerce_use_queue()) {
+    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_add_cart_process', [
+      'op' => 'addCart',
+      'cart_id' => $cart_id,
+      'store_id' => $store_id,
+      'customer' => $customer,
+      'cart' => $cart,
+    ]);
+  }
+  else {
+    $result = mailchimp_ecommerce_add_cart_process($cart_id, $customer, $cart, $store_id);
   }
   return $result;
 }
