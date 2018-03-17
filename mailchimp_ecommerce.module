@@ -634,9 +634,15 @@ function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
  * @param $store_id
  */
 function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product, $store_id) {
-  /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
-  $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
-  $mc_ecommerce->addCartLine($store_id, $cart_id, $line_id, $product);
+  try {
+    /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
+    $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
+    $mc_ecommerce->addCartLine($store_id, $cart_id, $line_id, $product);
+  }
+  catch (Exception $e) {
+    mailchimp_ecommerce_log_error_message('Unable to add a cart line: ' . $e->getMessage());
+    mailchimp_ecommerce_show_error($e->getMessage());
+  }
 }
 
 /**
