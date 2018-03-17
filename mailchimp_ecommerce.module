@@ -547,7 +547,7 @@ function mailchiimp_ecommerce_update_cart_process($cart_id, array $customer, arr
 function mailchimp_ecommerce_delete_cart($cart_id) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    throw new Exception('Cannot delete a cart without a store ID.');
+    return;
   }
 
   if (mailchimp_ecommerce_use_queue()) {
@@ -656,30 +656,25 @@ function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product,
  *   - price (float) The price of a cart line item.
  */
 function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
-  try {
-    $store_id = mailchimp_ecommerce_get_store_id();
-    if (empty($store_id)) {
-      return;
-    }
+  $store_id = mailchimp_ecommerce_get_store_id();
+  if (empty($store_id)) {
+    return;
+  }
 
-    if (mailchimp_ecommerce_use_queue()) {
-      $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_update_cart_line_process', [
-        'op' => 'updateCartLine',
-        'cart_id' => $cart_id,
-        'store_id' => $store_id,
-        'line_id' => $line_id,
-        'product' => $product,
-      ]);
-    }
-    else {
-      $result = mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $product, $store_id);
-    }
-    return $result;
+  if (mailchimp_ecommerce_use_queue()) {
+    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_update_cart_line_process', [
+      'op' => 'updateCartLine',
+      'cart_id' => $cart_id,
+      'store_id' => $store_id,
+      'line_id' => $line_id,
+      'product' => $product,
+    ]);
   }
-  catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message('Unable to update a cart line: ' . $e->getMessage());
-    mailchimp_ecommerce_show_error($e->getMessage());
+  else {
+    $result = mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $product, $store_id);
   }
+  return $result;
+
 }
 
 /**
