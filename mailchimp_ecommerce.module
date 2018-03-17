@@ -663,7 +663,7 @@ function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
     }
 
     if (mailchimp_ecommerce_use_queue()) {
-      mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_update_cart_line_process', [
+      $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_update_cart_line_process', [
         'op' => 'updateCartLine',
         'cart_id' => $cart_id,
         'store_id' => $store_id,
@@ -672,8 +672,9 @@ function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
       ]);
     }
     else {
-      mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $product, $store_id);
+      $result = mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $product, $store_id);
     }
+    return $result;
   }
   catch (Exception $e) {
     mailchimp_ecommerce_log_error_message('Unable to update a cart line: ' . $e->getMessage());
@@ -689,8 +690,16 @@ function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
  */
 function mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $product, $store_id) {
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
-  $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
-  $mc_ecommerce->updateCartLine($store_id, $cart_id, $line_id, $product);
+  try {
+    $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
+    $mc_ecommerce->updateCartLine($store_id, $cart_id, $line_id, $product);
+    return TRUE;
+  }
+  catch (Exception $e) {
+    mailchimp_ecommerce_log_error_message('Unable to update a cart line: ' . $e->getMessage());
+    mailchimp_ecommerce_show_error($e->getMessage());
+    return FALSE;
+  }
 }
 
 /**
