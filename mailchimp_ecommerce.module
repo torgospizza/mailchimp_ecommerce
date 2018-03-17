@@ -906,10 +906,17 @@ function mailchimp_ecommerce_update_order($order_id, array $order) {
  * @param $store_id
  */
 function mailchimp_ecommerce_update_order_process($order_id, array $order, $store_id) {
-  /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
-  $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
-  $mc_ecommerce->updateOrder($store_id, $order_id, $order);
-  return TRUE;
+  try {
+    /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
+    $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
+    $mc_ecommerce->updateOrder($store_id, $order_id, $order);
+    return TRUE;
+  }
+  catch (Exception $e) {
+    mailchimp_ecommerce_log_error_message('Unable to update an order: ' . $e->getMessage());
+    mailchimp_ecommerce_show_error($e->getMessage());
+    return FALSE;
+  }
 }
 
 /**
