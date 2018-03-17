@@ -756,7 +756,7 @@ function mailchimp_ecommerce_get_order($order_id) {
   try {
     $store_id = mailchimp_ecommerce_get_store_id();
     if (empty($store_id)) {
-      return FALSE;
+      return;
     }
 
     /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
