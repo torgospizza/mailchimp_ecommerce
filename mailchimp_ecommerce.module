@@ -57,14 +57,26 @@ function mailchimp_ecommerce_use_queue() {
 }
 
 /**
- * Implements hook_queue_info().
+ * Implements hook_cron().
+ *
+ * Process queued ecommerce operations with Cron.
  */
-function mailchimp_ecommerce_cron_queue_info() {
-  $queues['mailchimp_ecommerce_ops'] = [
-    'worker callback' => 'mailchimp_ecommerce_queue_process',
-    'time' => 60,
-  ];
-  return $queues;
+function mailchimp_ecommerce_cron() {
+  $queue = DrupalQueue::get(MAILCHIMP_ECOMMERCE_QUEUE_CRON);
+  $queue->createQueue();
+  $queue_count = $queue->numberOfItems();
+  if ($queue_count > 0) {
+    $batch_limit = variable_get('mailchimp_batch_limit', 100);
+    $batch_size = ($queue_count < $batch_limit) ? $queue_count : $batch_limit;
+    $count = 0;
+    while ($count < $batch_size) {
+      if ($item = $queue->claimItem()) {
+        call_user_func_array($item->data['function'], $item->data['args']);
+        $queue->deleteItem($item);
+      }
+      $count++;
+    }
+  }
 }
 
 /**
