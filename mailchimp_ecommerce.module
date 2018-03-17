@@ -796,7 +796,7 @@ function mailchimp_ecommerce_get_order($order_id) {
 function mailchimp_ecommerce_add_order($order_id, array $customer, array $order) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    throw new Exception('Cannot add an order without a store ID.');
+    return;
   }
   if (!mailchimp_ecommerce_validate_customer($customer)) {
     // A user not existing in the store's MailChimp list is not an error, so
