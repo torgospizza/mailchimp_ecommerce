@@ -426,7 +426,7 @@ function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
     }
 
     if (mailchimp_ecommerce_use_queue()) {
-      mailchimp_ecommerce_create_queue_item([
+      $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_add_cart_process', [
         'op' => 'addCart',
         'cart_id' => $cart_id,
         'store_id' => $store_id,
@@ -442,6 +442,7 @@ function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
     mailchimp_ecommerce_log_error_message('Unable to add a cart: ' . $e->getMessage());
     mailchimp_ecommerce_show_error($e->getMessage());
   }
+  return $result;
 }
 
 /**
