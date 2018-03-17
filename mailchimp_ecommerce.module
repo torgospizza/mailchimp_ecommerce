@@ -569,6 +569,7 @@ function mailchimp_ecommerce_delete_cart($cart_id) {
       mailchimp_ecommerce_show_error($e->getMessage());
     }
   }
+  return $result;
 }
 
 /**
