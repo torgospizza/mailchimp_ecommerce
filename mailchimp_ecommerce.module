@@ -711,29 +711,23 @@ function mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $produ
  *   A unique identifier for the order line item.
  */
 function mailchimp_ecommerce_delete_cart_line($cart_id, $line_id) {
-  try {
-    $store_id = mailchimp_ecommerce_get_store_id();
-    if (empty($store_id)) {
-      throw new Exception('Cannot delete a cart line without a store ID.');
-    }
+  $store_id = mailchimp_ecommerce_get_store_id();
+  if (empty($store_id)) {
+    return FALSE;
+  }
 
-    if (mailchimp_ecommerce_use_queue()) {
-      $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_delete_cart_line_process', [
-        'op' => 'deleteCartLine',
-        'cart_id' => $cart_id,
-        'store_id' => $store_id,
-        'line_id' => $line_id,
-      ]);
-    }
-    else {
-      $result = mailchimp_ecommerce_delete_cart_line_process($cart_id, $line_id, $store_id);
-    }
-    return $result;
+  if (mailchimp_ecommerce_use_queue()) {
+    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_delete_cart_line_process', [
+      'op' => 'deleteCartLine',
+      'cart_id' => $cart_id,
+      'store_id' => $store_id,
+      'line_id' => $line_id,
+    ]);
   }
-  catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message('Unable to delete a cart line: ' . $e->getMessage());
-    mailchimp_ecommerce_show_error($e->getMessage());
+  else {
+    $result = mailchimp_ecommerce_delete_cart_line_process($cart_id, $line_id, $store_id);
   }
+  return $result;
 }
 
 /**
