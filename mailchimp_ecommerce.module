@@ -931,6 +931,7 @@ function mailchimp_ecommerce_delete_order($order_id) {
  * @param $item
  */
 function mailchimp_ecommerce_delete_order_process($order_id, $store_id) {
+  // @todo: list_id and customer are not yet available.
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
   $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
   $mc_ecommerce->deleteOrder($store_id, $order_id);
