@@ -485,7 +485,7 @@ function mailchimp_ecommerce_add_cart_process($cart_id, array $customer, array $
 function mailchimp_ecommerce_update_cart($cart_id, array $customer, array $cart) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    throw new Exception('Cannot update a cart without a store ID.');
+    return;
   }
   // Do nothing with no email.
   if (!$customer['email_address']) {
