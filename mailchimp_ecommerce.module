@@ -800,40 +800,34 @@ function mailchimp_ecommerce_get_order($order_id) {
  * @see http://developer.mailchimp.com/documentation/mailchimp/reference/ecommerce/stores/orders/#create-post_ecommerce_stores_store_id_orders
  */
 function mailchimp_ecommerce_add_order($order_id, array $customer, array $order) {
-  try {
-    $store_id = mailchimp_ecommerce_get_store_id();
-    if (empty($store_id)) {
-      throw new Exception('Cannot add an order without a store ID.');
-    }
-    if (!mailchimp_ecommerce_validate_customer($customer)) {
-      // A user not existing in the store's MailChimp list is not an error, so
-      // don't throw an exception.
-      return;
-    }
-    $campaign_id = mailchimp_ecommerce_get_campaign_id();
-    if (!empty($campaign_id)) {
-      $order['campaign_id'] = $campaign_id;
-      $order['landing_site'] = isset($_SESSION['mc_landing_site']) ? $_SESSION['mc_landing_site'] : '';
-    }
+  $store_id = mailchimp_ecommerce_get_store_id();
+  if (empty($store_id)) {
+    throw new Exception('Cannot add an order without a store ID.');
+  }
+  if (!mailchimp_ecommerce_validate_customer($customer)) {
+    // A user not existing in the store's MailChimp list is not an error, so
+    // don't throw an exception.
+    return;
+  }
+  $campaign_id = mailchimp_ecommerce_get_campaign_id();
+  if (!empty($campaign_id)) {
+    $order['campaign_id'] = $campaign_id;
+    $order['landing_site'] = isset($_SESSION['mc_landing_site']) ? $_SESSION['mc_landing_site'] : '';
+  }
 
-    if (mailchimp_ecommerce_use_queue()) {
-      $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_add_order_process', [
-        'op' => 'addOrder',
-        'store_id' => $store_id,
-        'order_id' => $order_id,
-        'customer' => $customer,
-        'order' => $order,
-      ]);
-    }
-    else {
-      $result = mailchimp_ecommerce_add_order_process($order_id, $customer, $order, $store_id);
-    }
-    return $result;
+  if (mailchimp_ecommerce_use_queue()) {
+    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_add_order_process', [
+      'op' => 'addOrder',
+      'store_id' => $store_id,
+      'order_id' => $order_id,
+      'customer' => $customer,
+      'order' => $order,
+    ]);
   }
-  catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message('Unable to add an order: ' . $e->getMessage());
-    mailchimp_ecommerce_show_error($e->getMessage());
+  else {
+    $result = mailchimp_ecommerce_add_order_process($order_id, $customer, $order, $store_id);
   }
+  return $result;
 }
 
 /**
