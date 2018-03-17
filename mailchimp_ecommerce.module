@@ -882,7 +882,7 @@ function mailchimp_ecommerce_update_order($order_id, array $order) {
     }
 
     if (mailchimp_ecommerce_use_queue()) {
-      mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_update_order_process', [
+      $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_update_order_process', [
         'op' => 'updateOrder',
         'order_id' => $order_id,
         'store_id' => $store_id,
@@ -890,8 +890,9 @@ function mailchimp_ecommerce_update_order($order_id, array $order) {
       ]);
     }
     else {
-      mailchimp_ecommerce_update_order_process($order_id, $order, $store_id);
+      $result = mailchimp_ecommerce_update_order_process($order_id, $order, $store_id);
     }
+    return $result;
   }
   catch (Exception $e) {
     mailchimp_ecommerce_log_error_message('Unable to update an order: ' . $e->getMessage());
@@ -908,6 +909,7 @@ function mailchimp_ecommerce_update_order_process($order_id, array $order, $stor
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
   $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
   $mc_ecommerce->updateOrder($store_id, $order_id, $order);
+  return TRUE;
 }
 
 /**
