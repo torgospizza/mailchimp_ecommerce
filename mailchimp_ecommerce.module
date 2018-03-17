@@ -423,53 +423,62 @@ function mailchimp_ecommerce_update_cart($cart_id, array $customer, array $cart)
   if (empty($store_id)) {
     return;
   }
+
   // Do nothing with no email.
   if (!$customer['email_address']) {
     return;
   }
 
   if (mailchimp_ecommerce_use_queue()) {
-    $result = mailchimp_ecommerce_addto_queue('mailchiimp_ecommerce_update_cart_process', [
+    $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_update_cart_process', [
       'cart_id' => $cart_id,
-      'store_id' => $store_id,
       'customer' => $customer,
       'cart' => $cart,
+      'store_id' => $store_id,
     ]);
   }
   else {
-    $result = mailchiimp_ecommerce_update_cart_process($cart_id, $customer, $cart, $store_id);
+    $result = mailchimp_ecommerce_update_cart_process($cart_id, $customer, $cart, $store_id);
   }
   return $result;
 }
 
 /**
+ * Process a cart update operation.
+ *
  * @param $cart_id
  * @param array $customer
  * @param array $cart
  * @param $store_id
  */
-function mailchiimp_ecommerce_update_cart_process($cart_id, array $customer, array $cart, $store_id) {
-  /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
+function mailchimp_ecommerce_update_cart_process($cart_id, array $customer, array $cart, $store_id) {
+  $parameters = [
+    'customer' => (object) $customer,
+  ];
+
+  $parameters += $cart;
+  $list_id = mailchimp_ecommerce_get_list_id();
+
+  // Pull member information to get member status.
+  $memberinfo = mailchimp_get_memberinfo($list_id, $customer['email_address'], TRUE);
+  $customer['opt_in_status'] = (isset($memberinfo->status) && ($memberinfo->status == 'subscribed')) ? TRUE : FALSE;
+
   try {
+    /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
     $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
-
-
-    $list_id = mailchimp_ecommerce_get_list_id();
-
-    // Pull member information to get member status.
-    $memberinfo = mailchimp_get_memberinfo($list_id, $customer['email_address'], TRUE);
-    $customer['opt_in_status'] = (isset($memberinfo->status) && ($memberinfo->status == 'subscribed')) ? TRUE : FALSE;
-
-    $parameters = [
-      'customer' => (object) $customer,
-    ];
-
-    $parameters += $cart;
-    $mc_ecommerce->updateCart($store_id, $cart_id, $parameters);
+    $mc_ecommerce->updateCart($store_id, $cart_id, $parameters, $store_id);
+    return TRUE;
   }
   catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message('Unable to update a cart: ' . $e->getMessage());
-    mailchimp_ecommerce_show_error($e->getMessage());
+    // If a cart doesn't exist, we can add it.
+    if ($e->getCode() == 404) {
+      $mc_ecommerce->addCart($store_id, $cart_id, $customer, $cart);
+    }
+    else {
+      mailchimp_ecommerce_log_error_message('Unable to update a cart: ' . $e->getMessage());
+      mailchimp_ecommerce_show_error($e->getMessage());
+      return FALSE;
+    }
   }
 }
 
