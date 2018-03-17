@@ -78,7 +78,7 @@ function mailchimp_ecommerce_cron_queue_info() {
  * @return bool
  *   Success or failure.
  */
-function mailchimp_ecommerce_create_queue_item($function, $args) {
+function mailchimp_ecommerce_addto_queue($function, $args) {
   $queue = DrupalQueue::get(MAILCHIMP_ECOMMERCE_QUEUE_CRON);
   $queue->createQueue();
   mailchimp_update_local_cache($function, $args);
@@ -425,7 +425,7 @@ function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
   }
 
   if (mailchimp_ecommerce_use_queue()) {
-    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_add_cart_process', [
+    $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_cart_process', [
       'op' => 'addCart',
       'cart_id' => $cart_id,
       'store_id' => $store_id,
@@ -493,7 +493,7 @@ function mailchimp_ecommerce_update_cart($cart_id, array $customer, array $cart)
   }
 
   if (mailchimp_ecommerce_use_queue()) {
-    $result = mailchimp_ecommerce_create_queue_item('mailchiimp_ecommerce_update_cart_process', [
+    $result = mailchimp_ecommerce_addto_queue('mailchiimp_ecommerce_update_cart_process', [
       'op' => 'updateCart',
       'cart_id' => $cart_id,
       'store_id' => $store_id,
@@ -551,7 +551,7 @@ function mailchimp_ecommerce_delete_cart($cart_id) {
   }
 
   if (mailchimp_ecommerce_use_queue()) {
-    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_delete_cart_process', [
+    $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_delete_cart_process', [
       'op' => 'deleteCart',
       'cart_id' => $cart_id,
       'store_id' => $store_id,
@@ -607,7 +607,7 @@ function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
   }
 
   if (mailchimp_ecommerce_use_queue()) {
-    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_add_cart_line_process', [
+    $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_cart_line_process', [
       'op' => 'addCartLine',
       'cart_id' => $cart_id,
       'store_id' => $store_id,
@@ -662,7 +662,7 @@ function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
   }
 
   if (mailchimp_ecommerce_use_queue()) {
-    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_update_cart_line_process', [
+    $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_update_cart_line_process', [
       'op' => 'updateCartLine',
       'cart_id' => $cart_id,
       'store_id' => $store_id,
@@ -711,7 +711,7 @@ function mailchimp_ecommerce_delete_cart_line($cart_id, $line_id) {
   }
 
   if (mailchimp_ecommerce_use_queue()) {
-    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_delete_cart_line_process', [
+    $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_delete_cart_line_process', [
       'op' => 'deleteCartLine',
       'cart_id' => $cart_id,
       'store_id' => $store_id,
@@ -810,7 +810,7 @@ function mailchimp_ecommerce_add_order($order_id, array $customer, array $order)
   }
 
   if (mailchimp_ecommerce_use_queue()) {
-    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_add_order_process', [
+    $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_order_process', [
       'op' => 'addOrder',
       'store_id' => $store_id,
       'order_id' => $order_id,
@@ -876,7 +876,7 @@ function mailchimp_ecommerce_update_order($order_id, array $order) {
   }
 
   if (mailchimp_ecommerce_use_queue()) {
-    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_update_order_process', [
+    $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_update_order_process', [
       'op' => 'updateOrder',
       'order_id' => $order_id,
       'store_id' => $store_id,
@@ -921,7 +921,7 @@ function mailchimp_ecommerce_delete_order($order_id) {
   }
 
   if (mailchimp_ecommerce_use_queue()) {
-    $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_delete_order_process', [
+    $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_delete_order_process', [
       'op' => 'deleteOrder',
       'order_id' => $order_id,
       'store_id' => $store_id,
