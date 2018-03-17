@@ -632,10 +632,12 @@ function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product,
     /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
     $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
     $mc_ecommerce->addCartLine($store_id, $cart_id, $line_id, $product);
+    return TRUE;
   }
   catch (Exception $e) {
     mailchimp_ecommerce_log_error_message('Unable to add a cart line: ' . $e->getMessage());
     mailchimp_ecommerce_show_error($e->getMessage());
+    return FALSE;
   }
 }
 
