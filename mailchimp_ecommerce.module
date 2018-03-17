@@ -933,15 +933,16 @@ function mailchimp_ecommerce_delete_order($order_id) {
     }
 
     if (mailchimp_ecommerce_use_queue()) {
-      mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_delete_order_process', [
+      $result = mailchimp_ecommerce_create_queue_item('mailchimp_ecommerce_delete_order_process', [
         'op' => 'deleteOrder',
         'order_id' => $order_id,
         'store_id' => $store_id,
       ]);
     }
     else {
-      mailchimp_ecommerce_delete_order_process($order_id, $store_id);
+      $result = mailchimp_ecommerce_delete_order_process($order_id, $store_id);
     }
+    return $result;
   }
   catch (Exception $e) {
     if ($e->getCode() == 404) {
