@@ -394,11 +394,13 @@ function mailchimp_ecommerce_add_cart_process($cart_id, array $customer, array $
   $customer['opt_in_status'] = (isset($memberinfo->status) && ($memberinfo->status == 'subscribed')) ? TRUE : FALSE;
 
   try {
-    return $mc_ecommerce->addCart($store_id, $cart_id, $customer, $cart);
+    $mc_ecommerce->addCart($store_id, $cart_id, $customer, $cart);
+    return TRUE;
   }
   catch (Exception $e) {
     mailchimp_ecommerce_log_error_message('Unable to add a cart: ' . $e->getMessage());
     mailchimp_ecommerce_show_error($e->getMessage());
+    return FALSE;
   }
 }
 
@@ -742,12 +744,12 @@ function mailchimp_ecommerce_get_order($order_id) {
 function mailchimp_ecommerce_add_order($order_id, array $customer, array $order) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return;
+    return FALSE;
   }
   if (!mailchimp_ecommerce_validate_customer($customer)) {
     // A user not existing in the store's MailChimp list is not an error, so
     // don't throw an exception.
-    return;
+    return FALSE;
   }
   $campaign_id = mailchimp_ecommerce_get_campaign_id();
   if (!empty($campaign_id)) {
@@ -892,35 +894,22 @@ function mailchimp_ecommerce_delete_order($order_id) {
 }
 
 /**
+ * Process deleting an order at MailChimp.
+ *
  * @param $order_id
  * @param $store_id
- * @param $customer
- * @param $item
  */
 function mailchimp_ecommerce_delete_order_process($order_id, $store_id) {
-  // @todo: list_id and customer are not yet available.
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
   try {
     $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
     $mc_ecommerce->deleteOrder($store_id, $order_id);
-
-    // Pull member information to get member status.
-    $memberinfo = mailchimp_get_memberinfo($list_id, $customer['email_address'], TRUE);
-    $customer['opt_in_status'] = (isset($memberinfo->status) && ($memberinfo->status == 'subscribed')) ? TRUE : FALSE;
-
-    // Decrement customer totals.
-    $remote_customer = mailchimp_ecommerce_get_customer($customer['id']);
-    $customer['orders_count'] = $remote_customer->orders_count - 1;
-    $customer['total_spent'] = $remote_customer->total_spent - $item->order['order_total'];
     return TRUE;
   }
   catch (Exception $e) {
-    if ($e->getCode() == 404) {
-      // Order doesn't exist; no need to log an error.
-    }
-    else {
+    if ($e->getcode() != 404) {
+      mailchimp_ecommerce_log_error_message($e->getMessage());
       mailchimp_ecommerce_log_error_message('Unable to delete an order: ' . $e->getMessage());
-      mailchimp_ecommerce_show_error($e->getMessage());
     }
     return FALSE;
   }
