@@ -363,7 +363,8 @@ function mailchimp_ecommerce_commerce_commerce_line_item_update($line_item) {
     $result = mailchimp_ecommerce_update_cart_line($line_item->order_id, $line_item->line_item_id, $mc_product);
     if ($result == FALSE) {
       $order = commerce_order_load($line_item->order_id);
-      _mailchimp_ecommerce_commerce_send_cart($order);
+      $result = _mailchimp_ecommerce_commerce_send_cart($order);
+      return $result;
     }
   }
 }
@@ -606,17 +607,13 @@ function _mailchimp_ecommerce_commerce_send_cart($order) {
 
   try {
     $mc_order = _mailchimp_ecommerce_commerce_build_order($order_wrapper);
-    $result = mailchimp_ecommerce_update_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
-
-    // If result was empty, the cart doesn't exist, and needs to be added.
-    if (empty($result)) {
-      $result = mailchimp_ecommerce_add_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
-    }
+    $result = mailchimp_ecommerce_add_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
     return $result;
   }
   catch (Exception $e) {
     mailchimp_ecommerce_log_error_message(t('Unable to update cart: %msg', array('%msg' => $e->getMessage())));
     mailchimp_ecommerce_show_error(t('Unable to update cart at MailChimp: %msg', array('%msg' => $e->getMessage())));
+    return FALSE;
   }
 }
 
