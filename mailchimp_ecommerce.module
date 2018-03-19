@@ -343,17 +343,17 @@ function mailchimp_ecommerce_delete_customer($customer_id) {
 function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return FALSE;
+    return;
   }
 
   // Do nothing with no email.
   if (!$customer['email_address']) {
-    return FALSE;
+    return;
   }
   if (!mailchimp_ecommerce_validate_customer($customer)) {
     // A user not existing in the store's MailChimp list is not an error, so
     // don't throw an exception.
-    return FALSE;
+    return;
   }
   $campaign_id = mailchimp_ecommerce_get_campaign_id();
   if (!empty($campaign_id)) {
@@ -609,7 +609,7 @@ function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product,
 function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return FALSE;
+    return;
   }
 
   if (mailchimp_ecommerce_use_queue()) {
@@ -755,12 +755,12 @@ function mailchimp_ecommerce_get_order($order_id) {
 function mailchimp_ecommerce_add_order($order_id, array $customer, array $order) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return FALSE;
+    return;
   }
   if (!mailchimp_ecommerce_validate_customer($customer)) {
     // A user not existing in the store's MailChimp list is not an error, so
     // don't throw an exception.
-    return FALSE;
+    return;
   }
   $campaign_id = mailchimp_ecommerce_get_campaign_id();
   if (!empty($campaign_id)) {
@@ -802,7 +802,7 @@ function mailchimp_ecommerce_add_order_process($order_id, array $customer, array
     if (!mailchimp_ecommerce_validate_customer($customer)) {
       // A user not existing in the store's MailChimp list is not an error, so
       // don't throw an exception.
-      return FALSE;
+      return;
     }
 
     // Pull member information to get member status.
