@@ -404,7 +404,7 @@ function mailchimp_ecommerce_add_cart_process($cart_id, array $customer, array $
         'customer' => (object) $customer,
       ];
       $parameters += $cart;
-      $mc_ecommerce->updateCart($store_id, $cart_id, $parameters, $store_id);
+      $mc_ecommerce->updateCart($store_id, $cart_id, $parameters);
       return TRUE;
     }
     mailchimp_ecommerce_log_error_message('Unable to add a cart: ' . $e->getMessage());
