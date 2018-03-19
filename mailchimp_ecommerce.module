@@ -398,6 +398,15 @@ function mailchimp_ecommerce_add_cart_process($cart_id, array $customer, array $
     return TRUE;
   }
   catch (Exception $e) {
+    // If a cart already exists, update it instead.
+    if ($e->getCode() == 400) {
+      $parameters = [
+        'customer' => (object) $customer,
+      ];
+      $parameters += $cart;
+      $mc_ecommerce->updateCart($store_id, $cart_id, $parameters, $store_id);
+      return TRUE;
+    }
     mailchimp_ecommerce_log_error_message('Unable to add a cart: ' . $e->getMessage());
     mailchimp_ecommerce_show_error($e->getMessage());
     return FALSE;
