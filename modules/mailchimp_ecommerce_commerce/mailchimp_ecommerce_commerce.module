@@ -258,10 +258,11 @@ function mailchimp_ecommerce_commerce_commerce_order_update($order) {
 
   // Only send a cart if we are in cart or checkout status, and the status has changed.
   if ($send_carts == TRUE && $order->original->status <> $order->status) {
-    $cart_states = array_keys(commerce_order_statuses(['state' => 'cart']));
+    // Since cart actions are handled at the cart and line item level,
+    // we only send an order when it's been updated at Checkout.
     $checkout_states = array_keys(commerce_order_statuses(['state' => 'checkout']));
 
-    if (in_array($order->status, $cart_states) || in_array($order->status, $checkout_states)) {
+    if (in_array($order->status, $checkout_states)) {
       // @todo: Handle admin-created orders.
       _mailchimp_ecommerce_commerce_send_cart($order);
     }
@@ -611,8 +612,8 @@ function _mailchimp_ecommerce_commerce_send_cart($order) {
     return $result;
   }
   catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message(t('Unable to update cart: %msg', array('%msg' => $e->getMessage())));
-    mailchimp_ecommerce_show_error(t('Unable to update cart at MailChimp: %msg', array('%msg' => $e->getMessage())));
+    mailchimp_ecommerce_log_error_message(t('Unable to update cart: %msg', ['%msg' => $e->getMessage()]));
+    mailchimp_ecommerce_show_error(t('Unable to update cart at MailChimp: %msg', ['%msg' => $e->getMessage()]));
     return FALSE;
   }
 }

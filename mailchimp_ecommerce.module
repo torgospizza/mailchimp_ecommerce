@@ -343,17 +343,17 @@ function mailchimp_ecommerce_delete_customer($customer_id) {
 function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return;
+    return FALSE;
   }
 
   // Do nothing with no email.
   if (!$customer['email_address']) {
-    return;
+    return FALSE;
   }
   if (!mailchimp_ecommerce_validate_customer($customer)) {
     // A user not existing in the store's MailChimp list is not an error, so
     // don't throw an exception.
-    return;
+    return FALSE;
   }
   $campaign_id = mailchimp_ecommerce_get_campaign_id();
   if (!empty($campaign_id)) {
@@ -475,6 +475,7 @@ function mailchimp_ecommerce_update_cart_process($cart_id, array $customer, arra
     // If a cart doesn't exist, we can add it.
     if ($e->getCode() == 404) {
       $mc_ecommerce->addCart($store_id, $cart_id, $customer, $cart);
+      return TRUE;
     }
     else {
       mailchimp_ecommerce_log_error_message('Unable to update a cart: ' . $e->getMessage());
@@ -580,7 +581,10 @@ function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product,
     return TRUE;
   }
   catch (Exception $e) {
-    if ($e->getCode() != 404) {
+    if ($e->getCode() == 400) {
+      return TRUE;
+    }
+    elseif ($e->getCode() != 400 && $e->getCode() != 404) {
       mailchimp_ecommerce_log_error_message('Unable to add a cart line: ' . $e->getMessage());
       mailchimp_ecommerce_show_error($e->getMessage());
     }
@@ -638,7 +642,14 @@ function mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $produ
     return TRUE;
   }
   catch (Exception $e) {
-    if ($e->getMessage() != 404) {
+    if ($e->getCode() == 400) {
+      return TRUE;
+    }
+    if ($e->getCode() == 404) {
+      $mc_ecommerce->addCartLine($store_id, $cart_id, $line_id, $product);
+      return TRUE;
+    }
+    elseif ($e->getCode() != 404) {
       mailchimp_ecommerce_log_error_message('Unable to update a cart line: ' . $e->getMessage());
       mailchimp_ecommerce_show_error($e->getMessage());
     }
