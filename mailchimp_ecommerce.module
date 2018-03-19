@@ -1193,7 +1193,13 @@ function mailchimp_ecommerce_generate_store_id() {
  *   The store ID.
  */
 function mailchimp_ecommerce_get_store_id() {
-  return variable_get('mailchimp_ecommerce_store_id', NULL);
+  $store_id = variable_get('mailchimp_ecommerce_store_id', NULL);
+
+  if (empty($store_id)) {
+    mailchimp_ecommerce_log_error_message('You must connect your store to MailChimp.');
+    mailchimp_ecommerce_show_error('You must connect your store to MailChimp.');
+  }
+  return $store_id;
 }
 
 /**
