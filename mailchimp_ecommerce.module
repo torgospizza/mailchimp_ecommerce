@@ -654,18 +654,15 @@ function mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $produ
     return TRUE;
   }
   catch (Exception $e) {
-    if ($e->getCode() == 400) {
-      return TRUE;
-    }
     if ($e->getCode() == 404) {
       $mc_ecommerce->addCartLine($store_id, $cart_id, $line_id, $product);
       return TRUE;
     }
-    elseif ($e->getCode() != 404) {
+    else {
       mailchimp_ecommerce_log_error_message('Unable to update a cart line: ' . $e->getMessage());
       mailchimp_ecommerce_show_error($e->getMessage());
+      return FALSE;
     }
-    return FALSE;
   }
 }
 

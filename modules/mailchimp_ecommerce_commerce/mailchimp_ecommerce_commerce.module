@@ -504,6 +504,9 @@ function mailchimp_ecommerce_commerce_commerce_checkout_complete($order) {
   // Convert cart to order in MailChimp.
   mailchimp_ecommerce_delete_cart($order->order_id);
   mailchimp_ecommerce_add_order($order->order_id, $mc_order['customer'], $mc_order['order_data']);
+
+  // Delete the session variables.
+  unset($_SESSION['mc_cid'], $_SESSION['mc_landing_site']);
 }
 
 /**
