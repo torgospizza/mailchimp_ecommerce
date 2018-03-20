@@ -66,13 +66,17 @@ function mailchimp_ecommerce_cron() {
   $queue->createQueue();
   $queue_count = $queue->numberOfItems();
   if ($queue_count > 0) {
-    $batch_limit = variable_get('mailchimp_batch_limit', 100);
+    $batch_limit = variable_get('mailchimp_ecommerce_batch_limit', 100);
     $batch_size = ($queue_count < $batch_limit) ? $queue_count : $batch_limit;
     $count = 0;
     while ($count < $batch_size) {
       if ($item = $queue->claimItem()) {
-        call_user_func_array($item->data['function'], $item->data['args']);
-        $queue->deleteItem($item);
+        if (function_exists($item->data['function'])) {
+          $function = $item->data['function'];
+          $args = array_values($item->data['args']);
+          $function(...$args);
+          $queue->deleteItem($item);
+        }
       }
       $count++;
     }
