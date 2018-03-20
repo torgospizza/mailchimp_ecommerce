@@ -364,9 +364,9 @@ function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
   if (mailchimp_ecommerce_use_queue()) {
     $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_cart_process', [
       'cart_id' => $cart_id,
-      'store_id' => $store_id,
       'customer' => $customer,
       'cart' => $cart,
+      'store_id' => $store_id,
     ]);
   }
   else {
@@ -563,9 +563,9 @@ function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
   if (mailchimp_ecommerce_use_queue()) {
     $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_cart_line_process', [
       'cart_id' => $cart_id,
-      'store_id' => $store_id,
       'line_id' => $line_id,
       'product' => $product,
+      'store_id' => $store_id,
     ]);
   }
   else {
@@ -627,9 +627,9 @@ function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
   if (mailchimp_ecommerce_use_queue()) {
     $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_update_cart_line_process', [
       'cart_id' => $cart_id,
-      'store_id' => $store_id,
       'line_id' => $line_id,
       'product' => $product,
+      'store_id' => $store_id,
     ]);
   }
   else {
@@ -683,8 +683,8 @@ function mailchimp_ecommerce_delete_cart_line($cart_id, $line_id) {
   if (mailchimp_ecommerce_use_queue()) {
     $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_delete_cart_line_process', [
       'cart_id' => $cart_id,
-      'store_id' => $store_id,
       'line_id' => $line_id,
+      'store_id' => $store_id,
     ]);
   }
   else {
@@ -779,10 +779,10 @@ function mailchimp_ecommerce_add_order($order_id, array $customer, array $order)
 
   if (mailchimp_ecommerce_use_queue()) {
     $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_order_process', [
-      'store_id' => $store_id,
       'order_id' => $order_id,
       'customer' => $customer,
       'order' => $order,
+      'store_id' => $store_id,
     ]);
   }
   else {
@@ -855,8 +855,8 @@ function mailchimp_ecommerce_update_order($order_id, array $order) {
   if (mailchimp_ecommerce_use_queue()) {
     $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_update_order_process', [
       'order_id' => $order_id,
-      'store_id' => $store_id,
       'order' => $order,
+      'store_id' => $store_id,
     ]);
   }
   else {
