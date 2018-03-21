@@ -297,8 +297,16 @@ function mailchimp_ecommerce_commerce_commerce_cart_product_add($order, $product
 
   // If this order is new, that means this is the first line item;
   // send the entire cart to MailChimp first.
-  if ($order->created == $order->changed) {
-    _mailchimp_ecommerce_commerce_send_cart($order);
+  if (empty($order->data['mc_id'])) {
+    // @todo: Do this without a wrapper.
+    $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+    $mc_order = _mailchimp_ecommerce_commerce_build_order($order_wrapper);
+    $added = mailchimp_ecommerce_add_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
+    if (!empty($added)) {
+      $order->data['mc_id'] = time();
+      commerce_order_save($order);
+      return TRUE;
+    }
   }
   else {
     $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
@@ -310,14 +318,7 @@ function mailchimp_ecommerce_commerce_commerce_cart_product_add($order, $product
         $line_item_wrapper->commerce_unit_price->amount->value(),
         $line_item_wrapper->commerce_unit_price->currency_code->value()),
     ];
-
-    $added = mailchimp_ecommerce_add_cart_line($order->order_id, $line_item->line_item_id, $cart_product);
-
-    // If $added returns FALSE, it means the cart did not exist, so
-    // we must send the entire order first.
-    if ($added == FALSE) {
-      _mailchimp_ecommerce_commerce_send_cart($order);
-    }
+    return mailchimp_ecommerce_add_cart_line($order->order_id, $line_item->line_item_id, $cart_product);
   }
 }
 
