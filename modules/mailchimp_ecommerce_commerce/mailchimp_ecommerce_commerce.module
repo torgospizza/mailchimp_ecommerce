@@ -296,8 +296,11 @@ function mailchimp_ecommerce_commerce_commerce_cart_product_add($order, $product
 
   // If this order is new, that means this is the first line item;
   // send the entire cart to MailChimp first.
-  if ($order->created == $order->changed) {
-    _mailchimp_ecommerce_commerce_send_cart($order);
+  $in_mc = _mailchimp_ecommerce_get_order($order->order_id);
+  if (!$in_mc) {
+    $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
+    $mc_order = _mailchimp_ecommerce_commerce_build_order($order_wrapper);
+    return mailchimp_ecommerce_add_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
   }
   else {
     $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
@@ -309,7 +312,7 @@ function mailchimp_ecommerce_commerce_commerce_cart_product_add($order, $product
         $line_item_wrapper->commerce_unit_price->amount->value(),
         $line_item_wrapper->commerce_unit_price->currency_code->value()),
     ];
-    mailchimp_ecommerce_add_cart_line($order->order_id, $line_item->line_item_id, $cart_product);
+    return mailchimp_ecommerce_add_cart_line($order->order_id, $line_item->line_item_id, $cart_product);
   }
 }
 
@@ -592,13 +595,21 @@ function _mailchimp_ecommerce_commerce_send_cart($order) {
   }
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
 
-  $mc_order = _mailchimp_ecommerce_commerce_build_order($order_wrapper);
-
-  if ($order->created == $order->changed) {
-    mailchimp_ecommerce_add_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
+  try {
+    $mc_order = _mailchimp_ecommerce_commerce_build_order($order_wrapper);
+    $in_mc = _mailchimp_ecommerce_get_order($order->order_id);
+    if (!$in_mc) {
+      $result = mailchimp_ecommerce_add_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
+    }
+    else {
+      $result = mailchimp_ecommerce_update_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
+    }
+    return $result;
   }
-  else {
-    mailchimp_ecommerce_update_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
+  catch (Exception $e) {
+    mailchimp_ecommerce_log_error_message(t('Unable to send cart: %msg', array('%msg' => $e->getMessage())));
+    mailchimp_ecommerce_show_error(t('Unable to send cart at MailChimp: %msg', array('%msg' => $e->getMessage())));
+    return FALSE;
   }
 }
 
