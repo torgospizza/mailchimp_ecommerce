@@ -382,10 +382,17 @@ function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
 /**
  * Process an add to cart action.
  *
- * @param $cart_id
+ * @param string $cart_id
+ *   Unique ID of the cart.
  * @param array $customer
+ *   The customer array suitable for MC API.
  * @param array $cart
- * @param $store_id
+ *   The cart array suitable for MC API.
+ * @param string $store_id
+ *   Unique ID of the store.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_add_cart_process($cart_id, array $customer, array $cart, $store_id) {
   $list_id = mailchimp_ecommerce_get_list_id();
@@ -461,10 +468,17 @@ function mailchimp_ecommerce_update_cart($cart_id, array $customer, array $cart)
 /**
  * Process a cart update operation.
  *
- * @param $cart_id
+ * @param string $cart_id
+ *   Internal ID of the cart.
  * @param array $customer
+ *   A customer array suitable for MC API.
  * @param array $cart
- * @param $store_id
+ *   A cart array suitable for MC API.
+ * @param string $store_id
+ *   Unique ID of the store.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_update_cart_process($cart_id, array $customer, array $cart, $store_id) {
   $parameters = [
@@ -502,7 +516,10 @@ function mailchimp_ecommerce_update_cart_process($cart_id, array $customer, arra
  * Deletes a cart in the current MailChimp store.
  *
  * @param string $cart_id
- *   The cart ID.
+ *   The internal cart ID.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_delete_cart($cart_id) {
   $store_id = mailchimp_ecommerce_get_store_id();
@@ -523,10 +540,15 @@ function mailchimp_ecommerce_delete_cart($cart_id) {
 }
 
 /**
- * Process a cart deletion operation
+ * Process a cart deletion operation.
  *
- * @param $cart_id
- * @param $store_id
+ * @param string $cart_id
+ *   The internal ID of the shopping cart order.
+ * @param string $store_id
+ *   The unique ID of the store in MailChimp.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_delete_cart_process($cart_id, $store_id) {
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
@@ -581,12 +603,19 @@ function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
 /**
  * Process a cart line addition.
  *
- * @param $cart_id
- * @param $line_id
- * @param $product
- * @param $store_id
+ * @param string $cart_id
+ *   Unique ID of the cart.
+ * @param string $line_id
+ *   Specified line item ID.
+ * @param array $product
+ *   An array of product data suitable for MC API.
+ * @param string $store_id
+ *   Unique ID of the store in MailChimp.
+ *
+ * @return bool
+ *   Success or failure.
  */
-function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product, $store_id) {
+function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, array $product, $store_id) {
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
   try {
     $mc_ecommerce = mailchimp_get_api_object('MailchimpEcommerce');
@@ -621,11 +650,13 @@ function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, $product,
  *   - product_variant_id (string) The unique identifier for the variant.
  *   - quantity (int) The quantity of a cart line item.
  *   - price (float) The price of a cart line item.
+ *
+ * @return bool
  */
-function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
+function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, array $product) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return;
+    return FALSE;
   }
 
   if (mailchimp_ecommerce_use_queue()) {
@@ -645,10 +676,17 @@ function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, $product) {
 /**
  * Process a cart line update.
  *
- * @param $cart_id
- * @param $line_id
- * @param $product
- * @param $store_id
+ * @param string $cart_id
+ *   Unique ID of the cart.
+ * @param string $line_id
+ *   Specified line item ID.
+ * @param array $product
+ *   An array of product data suitable for MC API.
+ * @param string $store_id
+ *   Unique ID of the store in MailChimp.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $product, $store_id) {
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
@@ -677,6 +715,9 @@ function mailchimp_ecommerce_update_cart_line_process($cart_id, $line_id, $produ
  *   The cart ID.
  * @param string $line_id
  *   A unique identifier for the order line item.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_delete_cart_line($cart_id, $line_id) {
   $store_id = mailchimp_ecommerce_get_store_id();
@@ -700,9 +741,15 @@ function mailchimp_ecommerce_delete_cart_line($cart_id, $line_id) {
 /**
  * Process a cart line deletion.
  *
- * @param $cart_id
- * @param $line_id
- * @param $store_id
+ * @param string $cart_id
+ *   ID of the cart.
+ * @param string $line_id
+ *   ID of the specified line item.
+ * @param string $store_id
+ *   Unique ID of the store in MailChimp.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_delete_cart_line_process($cart_id, $line_id, $store_id) {
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
@@ -713,11 +760,15 @@ function mailchimp_ecommerce_delete_cart_line_process($cart_id, $line_id, $store
     return TRUE;
   }
   catch (Exception $e) {
-    if ($e->getCode() != 404) {
+    if ($e->getCode() == 400) {
+      // Can't delete the last line item, so delete the whole cart.
+      return mailchimp_ecommerce_delete_cart_process($cart_id, $store_id);
+    }
+    else {
       mailchimp_ecommerce_log_error_message('Unable to delete a cart line: ' . $e->getMessage());
       mailchimp_ecommerce_show_error($e->getMessage());
+      return FALSE;
     }
-    return FALSE;
   }
 }
 
@@ -798,10 +849,17 @@ function mailchimp_ecommerce_add_order($order_id, array $customer, array $order)
 /**
  * Process adding an order at MailChimp.
  *
- * @param $order_id
+ * @param string $order_id
+ *   ID of the order.
  * @param array $customer
+ *   An array of customer data suitable for MailChimp.
  * @param array $order
- * @param $store_id
+ *   An array of order data suitable for MailChimp.
+ * @param string $store_id
+ *   Unique store ID.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_add_order_process($order_id, array $customer, array $order, $store_id) {
   $list_id = mailchimp_ecommerce_get_list_id();
@@ -872,10 +930,15 @@ function mailchimp_ecommerce_update_order($order_id, array $order) {
 /**
  * Process updating an order at MailChimp.
  *
- * @param $order_id
+ * @param string $order_id
+ *   ID of the order.
  * @param array $order
- * @param $store_id
- * @throws \Mailchimp\MailchimpAPIException
+ *   An array of order data suitable for MailChimp.
+ * @param string $store_id
+ *   Unique store ID.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_update_order_process($order_id, array $order, $store_id) {
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
@@ -898,6 +961,9 @@ function mailchimp_ecommerce_update_order_process($order_id, array $order, $stor
  *
  * @param string $order_id
  *   The Order ID.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_delete_order($order_id) {
   $store_id = mailchimp_ecommerce_get_store_id();
@@ -920,8 +986,13 @@ function mailchimp_ecommerce_delete_order($order_id) {
 /**
  * Process deleting an order at MailChimp.
  *
- * @param $order_id
- * @param $store_id
+ * @param string $order_id
+ *   Unique ID of the order.
+ * @param string $store_id
+ *   Unique Store ID from MailChimp.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_delete_order_process($order_id, $store_id) {
   /* @var \Mailchimp\MailchimpEcommerce $mc_ecommerce */
