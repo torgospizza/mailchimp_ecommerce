@@ -1349,7 +1349,7 @@ function _mailchimp_ecommerce_save_order($order_id, $store_id) {
     return $result;
   }
   catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message(t('Could not save order to database. %msg', array('%msg' => $e->getMessage())));
+    mailchimp_ecommerce_log_error_message(t('Could not save order to database. %msg', ['%msg' => $e->getMessage()]));
   }
 }
 
