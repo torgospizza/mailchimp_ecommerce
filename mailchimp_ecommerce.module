@@ -441,6 +441,7 @@ function mailchimp_ecommerce_add_cart($cart_id, array $customer, array $cart) {
       $customer['opt_in_status'] = (isset($memberinfo->status) && ($memberinfo->status == 'subscribed')) ? TRUE : FALSE;
 
       $mc_ecommerce->addCart($store_id, $cart_id, $customer, $cart);
+      _mailchimp_ecommerce_save_order($cart_id, $store_id);
     }
   }
   catch (Exception $e) {
@@ -501,6 +502,7 @@ function mailchimp_ecommerce_update_cart($cart_id, array $customer, array $cart)
 
       $parameters += $cart;
       $mc_ecommerce->updateCart($store_id, $cart_id, $parameters);
+      _mailchimp_ecommerce_save_order($cart_id, $store_id);
     }
   }
   catch (Exception $e) {
@@ -1297,4 +1299,71 @@ function mailchimp_ecommerce_get_node_type_name($type_slug) {
   }
 
   return $type_name;
+}
+
+/**
+ * Get a local order_id based on the current store_id.
+ *
+ * @param string $order_id
+ *   The order ID we are looking for.
+ *
+ * @return string
+ *   The order ID if it exists, FALSE otherwise.
+ */
+function _mailchimp_ecommerce_get_order($order_id) {
+  $store_id = mailchimp_ecommerce_get_store_id();
+
+  $id = db_query("SELECT order_id FROM {mailchimp_ecommerce_order} WHERE store_id = :store_id AND order_id = :id",
+    [':store_id' => $store_id, ':id' => $order_id])->fetchField();
+
+  return !empty($id) ? $id : FALSE;
+}
+
+/**
+ * Save an order and its store to the database.
+ *
+ * @param string $order_id
+ *   Identifier for the  order.
+ * @param string $store_id
+ *   Unique value of the store that processed this order.
+ *
+ * @return bool
+ *   Success or failure.
+ */
+function _mailchimp_ecommerce_save_order($order_id, $store_id) {
+  try {
+    $result = db_merge('mailchimp_ecommerce_order')
+      ->key([
+        'store_id' => $store_id,
+        'order_id' => $order_id,
+      ])
+      ->insertFields([
+        'store_id' => $store_id,
+        'order_id' => $order_id,
+        'changed' => time(),
+      ])
+      ->updateFields([
+        'changed' => time(),
+      ])
+      ->execute();
+    return $result;
+  }
+  catch (Exception $e) {
+    mailchimp_ecommerce_log_error_message(t('Could not save order to database. %msg', array('%msg' => $e->getMessage())));
+  }
+}
+
+/**
+ * Save an order and its store to the database.
+ *
+ * @param string $order_id
+ *   Identifier for the  order.
+ * @param string $store_id
+ *   Unique value of the store that processed this order.
+ */
+function _mailchimp_ecommerce_remove_order($order_id, $store_id) {
+  db_delete('mailchimp_ecommerce_order')
+    ->condition('store_id', $store_id)
+    ->condition('order_id', $order_id)
+    ->execute();
 }

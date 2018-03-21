@@ -56,6 +56,39 @@ function mailchimp_ecommerce_schema() {
     ],
   ];
 
+  $schema['mailchimp_ecommerce_order'] = [
+    'description' => 'Maintains sync information between MailChimp and Drupal orders.',
+    'fields' => [
+      'id' => [
+        'description' => 'Primary Key (unique ID).',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'order_id' => [
+        'description' => 'Internal Drupal order ID.',
+        'type' => 'varchar',
+        'length' => 254,
+        'not null' => FALSE,
+      ],
+      'store_id' => [
+        'description' => 'The MailChimp store ID this product belongs to.',
+        'type' => 'varchar',
+        'length' => 254,
+        'not null' => FALSE,
+      ],
+      'changed' => [
+        'type' => 'int',
+        'description' => 'Timestamp when order was last synced.',
+        'unsigned' => TRUE,
+        'default' => 0,
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'order_id' => ['order_id', 'store_id'],
+    ],
+  ];
   return $schema;
 }
 
@@ -75,5 +108,15 @@ function mailchimp_ecommerce_update_7003() {
   // The table is renamed here, if it exists.
   if (db_table_exists('mailchimp_ecommerce')) {
     db_rename_table('mailchimp_ecommerce', 'mailchimp_ecommerce_customer');
+  }
+}
+
+/**
+ * Install the 'mailchimp_ecommerce_order' table to track carts and orders.
+ */
+function mailchimp_ecommerce_update_7004() {
+  if (!db_table_exists('mailchimp_ecommerce_order')) {
+    $table = drupal_get_schema_unprocessed('mailchimp_ecommerce', 'mailchimp_ecommerce_order');
+    db_create_table('mailchimp_ecommerce_order', $table);
   }
 }
