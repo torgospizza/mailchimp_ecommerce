@@ -132,13 +132,8 @@ function mailchimp_ecommerce_get_store($store_id) {
     $store = $mc_ecommerce->getStore($store_id);
   }
   catch (Exception $e) {
-    if ($e->getCode() == 404) {
-      // Store doesn't exist; no need to log an error.
-    }
-    else {
-      mailchimp_ecommerce_log_error_message('Unable to get store: ' . $e->getMessage());
-      mailchimp_ecommerce_show_error($e->getMessage());
-    }
+    mailchimp_ecommerce_log_error_message('Unable to get store: ' . $e->getMessage());
+    mailchimp_ecommerce_show_error($e->getMessage());
   }
 
   return $store;
@@ -579,13 +574,15 @@ function mailchimp_ecommerce_delete_cart_process($cart_id, $store_id) {
  *   - product_variant_id (string) The unique identifier for the variant.
  *   - quantity (int) The quantity of a cart line item.
  *   - price (float) The price of a cart line item.
+ *
+ * @return bool
+ *   Success or failure.
  */
 function mailchimp_ecommerce_add_cart_line($cart_id, $line_id, $product) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
     return;
   }
-
   if (mailchimp_ecommerce_use_queue()) {
     $result = mailchimp_ecommerce_addto_queue('mailchimp_ecommerce_add_cart_line_process', [
       'cart_id' => $cart_id,
@@ -656,7 +653,7 @@ function mailchimp_ecommerce_add_cart_line_process($cart_id, $line_id, array $pr
 function mailchimp_ecommerce_update_cart_line($cart_id, $line_id, array $product) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return FALSE;
+    return;
   }
 
   if (mailchimp_ecommerce_use_queue()) {
@@ -814,17 +811,20 @@ function mailchimp_ecommerce_get_order($order_id) {
  *   - order_total (float): The total for the order.
  *   - lines (array): An array of the order's line items.
  *
+ * @return bool
+ *   Success or failure.
+ *
  * @see http://developer.mailchimp.com/documentation/mailchimp/reference/ecommerce/stores/orders/#create-post_ecommerce_stores_store_id_orders
  */
 function mailchimp_ecommerce_add_order($order_id, array $customer, array $order) {
   $store_id = mailchimp_ecommerce_get_store_id();
   if (empty($store_id)) {
-    return;
+    return FALSE;
   }
   if (!mailchimp_ecommerce_validate_customer($customer)) {
     // A user not existing in the store's MailChimp list is not an error, so
     // don't throw an exception.
-    return;
+    return FALSE;
   }
   $campaign_id = mailchimp_ecommerce_get_campaign_id();
   if (!empty($campaign_id)) {
@@ -905,6 +905,9 @@ function mailchimp_ecommerce_add_order_process($order_id, array $customer, array
  *   - currency_code (string): The three-letter ISO 4217 currency code.
  *   - order_total (float): The total for the order.
  *   - lines (array): An array of the order's line items.
+ *
+ * @return bool
+ *   Success or failure.
  *
  * @see http://developer.mailchimp.com/documentation/mailchimp/reference/ecommerce/stores/orders/#edit-patch_ecommerce_stores_store_id_orders_order_id
  */
