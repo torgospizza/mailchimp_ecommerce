@@ -258,11 +258,10 @@ function mailchimp_ecommerce_commerce_commerce_order_update($order) {
 
   // Only send a cart if we are in cart or checkout status, and the status has changed.
   if ($send_carts == TRUE && $order->original->status <> $order->status) {
-    // Since cart actions are handled at the cart and line item level,
-    // we only send an order when it's been updated at Checkout.
+    $cart_states = array_keys(commerce_order_statuses(['state' => 'cart']));
     $checkout_states = array_keys(commerce_order_statuses(['state' => 'checkout']));
 
-    if (in_array($order->status, $checkout_states)) {
+    if (in_array($order->status, $cart_states) || in_array($order->status, $checkout_states)) {
       // @todo: Handle admin-created orders.
       _mailchimp_ecommerce_commerce_send_cart($order);
     }
@@ -297,16 +296,8 @@ function mailchimp_ecommerce_commerce_commerce_cart_product_add($order, $product
 
   // If this order is new, that means this is the first line item;
   // send the entire cart to MailChimp first.
-  if (empty($order->data['mc_id'])) {
-    // @todo: Do this without a wrapper.
-    $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
-    $mc_order = _mailchimp_ecommerce_commerce_build_order($order_wrapper);
-    $added = mailchimp_ecommerce_add_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
-    if (!empty($added)) {
-      $order->data['mc_id'] = time();
-      commerce_order_save($order);
-      return TRUE;
-    }
+  if ($order->created == $order->changed) {
+    _mailchimp_ecommerce_commerce_send_cart($order);
   }
   else {
     $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
@@ -318,7 +309,7 @@ function mailchimp_ecommerce_commerce_commerce_cart_product_add($order, $product
         $line_item_wrapper->commerce_unit_price->amount->value(),
         $line_item_wrapper->commerce_unit_price->currency_code->value()),
     ];
-    return mailchimp_ecommerce_add_cart_line($order->order_id, $line_item->line_item_id, $cart_product);
+    mailchimp_ecommerce_add_cart_line($order->order_id, $line_item->line_item_id, $cart_product);
   }
 }
 
@@ -361,13 +352,7 @@ function mailchimp_ecommerce_commerce_commerce_line_item_update($line_item) {
         $line_item_wrapper->commerce_unit_price->amount->value(),
         $line_item_wrapper->commerce_unit_price->currency_code->value()),
     ];
-
-    $result = mailchimp_ecommerce_update_cart_line($line_item->order_id, $line_item->line_item_id, $mc_product);
-    if ($result == FALSE) {
-      $order = commerce_order_load($line_item->order_id);
-      $result = _mailchimp_ecommerce_commerce_send_cart($order);
-      return $result;
-    }
+    mailchimp_ecommerce_update_cart_line($line_item->order_id, $line_item->line_item_id, $mc_product);
   }
 }
 
@@ -505,9 +490,6 @@ function mailchimp_ecommerce_commerce_commerce_checkout_complete($order) {
   // Convert cart to order in MailChimp.
   mailchimp_ecommerce_delete_cart($order->order_id);
   mailchimp_ecommerce_add_order($order->order_id, $mc_order['customer'], $mc_order['order_data']);
-
-  // Delete the session variables.
-  unset($_SESSION['mc_cid'], $_SESSION['mc_landing_site']);
 }
 
 /**
@@ -610,15 +592,13 @@ function _mailchimp_ecommerce_commerce_send_cart($order) {
   }
   $order_wrapper = entity_metadata_wrapper('commerce_order', $order);
 
-  try {
-    $mc_order = _mailchimp_ecommerce_commerce_build_order($order_wrapper);
-    $result = mailchimp_ecommerce_add_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
-    return $result;
+  $mc_order = _mailchimp_ecommerce_commerce_build_order($order_wrapper);
+
+  if ($order->created == $order->changed) {
+    mailchimp_ecommerce_add_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
   }
-  catch (Exception $e) {
-    mailchimp_ecommerce_log_error_message(t('Unable to update cart: %msg', ['%msg' => $e->getMessage()]));
-    mailchimp_ecommerce_show_error(t('Unable to update cart at MailChimp: %msg', ['%msg' => $e->getMessage()]));
-    return FALSE;
+  else {
+    mailchimp_ecommerce_update_cart($order->order_id, $mc_order['customer'], $mc_order['order_data']);
   }
 }
 
